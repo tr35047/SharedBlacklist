@@ -1,0 +1,13 @@
+{
+  "name": "shared-blacklist-relay",
+  "version": "1.0.0",
+  "description": "Gun relay server for SharedBlacklist",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "gun": "^0.2020.1240"
+  }
+}

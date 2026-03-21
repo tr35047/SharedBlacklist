@@ -23,11 +23,21 @@ export function useBlacklist() {
       return
     }
 
+    // 过滤 Gun 内部元数据
+    if (id === '_') return
+
     // 签名验证（如果公钥已配置）
     if (ADMIN_PUB_KEY !== 'REPLACE_WITH_ADMIN_PUBLIC_KEY' && data.approvalSig) {
-      const payload = await verifyApproval(data.approvalSig, ADMIN_PUB_KEY)
-      if (!payload || payload.entryId !== id) {
-        // 签名无效，忽略该条目
+      try {
+        const payload = await verifyApproval(data.approvalSig, ADMIN_PUB_KEY)
+        if (!payload || payload.entryId !== id) {
+          console.warn('[Blacklist] 签名验证失败，条目已忽略:', id, { payload, sig: data.approvalSig?.substring(0, 50) })
+          entryMap.delete(id)
+          updateEntries()
+          return
+        }
+      } catch (e) {
+        console.warn('[Blacklist] 签名验证异常:', id, e)
         entryMap.delete(id)
         updateEntries()
         return

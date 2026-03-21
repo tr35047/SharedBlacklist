@@ -1,11 +1,16 @@
 <template>
   <div class="review-card">
     <div class="review-header">
-      <h4>{{ entry.name }}</h4>
+      <h4><span class="field-label">游戏ID:</span> {{ entry.name }}</h4>
       <StarRating :modelValue="entry.severity" readonly showLabel />
     </div>
-    <p class="review-behavior">{{ entry.behavior }}</p>
-    <p v-if="entry.remark" class="review-remark">{{ entry.remark }}</p>
+    <p class="review-behavior"><span class="field-label">行为描述:</span> {{ entry.behavior }}</p>
+    <p v-if="entry.remark" class="review-remark"><span class="field-label">备注:</span> {{ entry.remark }}</p>
+    <div v-if="entry.screenshot" class="review-screenshot">
+      <a :href="entry.screenshot" target="_blank" rel="noopener">
+        <img :src="entry.screenshot" alt="举报截图" />
+      </a>
+    </div>
     <div class="review-meta">
       <span>{{ formatDate(entry.submittedAt) }}</span>
     </div>
@@ -55,6 +60,12 @@ function formatDate(ts) {
   font-size: 1rem;
 }
 
+.field-label {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
 .review-behavior {
   font-size: 0.9rem;
   color: var(--color-text);
@@ -75,6 +86,16 @@ function formatDate(ts) {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
   margin-bottom: 12px;
+}
+
+.review-screenshot {
+  margin-bottom: 8px;
+}
+.review-screenshot img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
 }
 
 .review-actions {

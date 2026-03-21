@@ -2,7 +2,7 @@
   <header class="app-header">
     <div class="container header-inner">
       <div class="header-brand">
-        <h1 class="header-title">SharedBlacklist</h1>
+        <h1 class="header-title">星际酒馆</h1>
         <span class="header-subtitle">去中心化公示黑名单</span>
       </div>
       <div class="header-actions">
@@ -45,7 +45,7 @@ defineEmits(['admin-click'])
 }
 
 .header-title {
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-accent);
 }

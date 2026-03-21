@@ -13,6 +13,12 @@
         <label>严重程度</label>
         <StarRating :modelValue="entry.severity" readonly showLabel />
       </div>
+      <div class="detail-row" v-if="entry.screenshot">
+        <label>截图</label>
+        <a :href="entry.screenshot" target="_blank" rel="noopener">
+          <img :src="entry.screenshot" alt="举报截图" class="screenshot-img" />
+        </a>
+      </div>
       <div class="detail-row" v-if="entry.remark">
         <label>备注</label>
         <p class="remark-text">{{ entry.remark }}</p>
@@ -71,5 +77,17 @@ function formatDate(ts) {
   padding: 12px;
   line-height: 1.6;
   white-space: pre-wrap;
+}
+
+.screenshot-img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.screenshot-img:hover {
+  opacity: 0.85;
 }
 </style>

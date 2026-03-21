@@ -12,7 +12,7 @@ defineEmits(['click'])
 <style scoped>
 .submit-btn {
   position: fixed;
-  bottom: 32px;
+  bottom: 64px;
   right: 32px;
   background: var(--color-accent);
   color: #fff;

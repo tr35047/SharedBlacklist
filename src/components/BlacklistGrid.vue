@@ -32,7 +32,8 @@ defineEmits(['select'])
 <style scoped>
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, 280px);
+  justify-content: start;
   gap: 16px;
 }
 

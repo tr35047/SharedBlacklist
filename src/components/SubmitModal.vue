@@ -2,11 +2,11 @@
   <BaseModal v-model="show" title="提交举报" maxWidth="520px">
     <form @submit.prevent="handleSubmit" class="submit-form">
       <div class="form-group">
-        <label>姓名 <span class="required">*</span></label>
+        <label>游戏ID <span class="required">*</span></label>
         <input
           v-model="form.name"
           type="text"
-          placeholder="被举报人姓名"
+          placeholder="游戏ID"
           maxlength="50"
         />
       </div>
@@ -28,10 +28,32 @@
       </div>
 
       <div class="form-group">
+        <label>截图（可选）</label>
+        <div class="upload-area" @click="triggerFileInput" @dragover.prevent @drop.prevent="handleDrop">
+          <input
+            ref="fileInput"
+            type="file"
+            accept="image/*"
+            class="file-input-hidden"
+            @change="handleFileChange"
+          />
+          <div v-if="!previewUrl" class="upload-placeholder">
+            <span class="upload-icon">+</span>
+            <span class="upload-text">点击或拖拽上传截图</span>
+            <span class="upload-hint">支持 JPG / PNG / GIF，最大 5MB</span>
+          </div>
+          <div v-else class="upload-preview">
+            <img :src="previewUrl" alt="截图预览" />
+            <button type="button" class="btn-remove-img" @click.stop="removeFile">移除</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label>备注（可选）</label>
         <textarea
           v-model="form.remark"
-          placeholder="补充说明、证据链接等"
+          placeholder="补充说明"
           rows="3"
           maxlength="500"
         ></textarea>
@@ -39,6 +61,8 @@
       </div>
 
       <div v-if="error" class="form-error">{{ error }}</div>
+
+      <div v-if="uploadProgress" class="form-progress">{{ uploadProgress }}</div>
 
       <div v-if="success" class="form-success">
         提交成功！等待管理员审核。
@@ -55,7 +79,7 @@
 </template>
 
 <script setup>
-import { reactive, computed } from 'vue'
+import { reactive, computed, ref } from 'vue'
 import BaseModal from './BaseModal.vue'
 import StarRating from './StarRating.vue'
 import { useSubmission } from '../composables/useSubmission.js'
@@ -70,7 +94,7 @@ const show = computed({
   set: (v) => emit('update:modelValue', v),
 })
 
-const { submit, submitting, error, success, reset } = useSubmission()
+const { submit, submitting, error, success, uploadProgress, reset } = useSubmission()
 
 const form = reactive({
   name: '',
@@ -79,8 +103,50 @@ const form = reactive({
   remark: '',
 })
 
+const fileInput = ref(null)
+const screenshotFile = ref(null)
+const previewUrl = ref('')
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+
+function triggerFileInput() {
+  fileInput.value?.click()
+}
+
+function handleFileChange(e) {
+  const file = e.target.files?.[0]
+  if (file) setFile(file)
+}
+
+function handleDrop(e) {
+  const file = e.dataTransfer.files?.[0]
+  if (file && file.type.startsWith('image/')) setFile(file)
+}
+
+function setFile(file) {
+  if (file.size > MAX_FILE_SIZE) {
+    error.value = '图片大小不能超过 5MB'
+    return
+  }
+  if (!file.type.startsWith('image/')) {
+    error.value = '请选择图片文件'
+    return
+  }
+  screenshotFile.value = file
+  previewUrl.value = URL.createObjectURL(file)
+}
+
+function removeFile() {
+  screenshotFile.value = null
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = ''
+  }
+  if (fileInput.value) fileInput.value.value = ''
+}
+
 async function handleSubmit() {
-  const ok = await submit({ ...form })
+  const ok = await submit({ ...form, screenshot: screenshotFile.value })
   if (ok) {
     setTimeout(() => {
       show.value = false
@@ -94,6 +160,7 @@ function resetForm() {
   form.behavior = ''
   form.severity = 0
   form.remark = ''
+  removeFile()
   reset()
 }
 </script>
@@ -147,12 +214,89 @@ function resetForm() {
   pointer-events: none;
 }
 
+.upload-area {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--transition);
+  overflow: hidden;
+}
+.upload-area:hover {
+  border-color: var(--color-accent);
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px;
+  color: var(--color-text-secondary);
+}
+
+.upload-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+  opacity: 0.5;
+}
+
+.upload-text {
+  font-size: 0.85rem;
+}
+
+.upload-hint {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.upload-preview {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+}
+
+.upload-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+}
+
+.btn-remove-img {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-remove-img:hover {
+  background: rgba(229, 62, 62, 0.8);
+}
+
 .form-error {
   background: rgba(229, 62, 62, 0.1);
   border: 1px solid var(--color-danger);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
   color: var(--color-danger);
+  font-size: 0.85rem;
+}
+
+.form-progress {
+  text-align: center;
+  padding: 8px;
+  color: var(--color-accent);
   font-size: 0.85rem;
 }
 

@@ -69,6 +69,8 @@ export async function signApproval(pair, payload) {
 export async function verifyApproval(sig, pubKey) {
   const result = await SEA.verify(sig, pubKey)
   if (!result) return false
+  // SEA.verify 对有效 JSON 字符串签名会返回已解析的对象
+  if (typeof result === 'object') return result
   try {
     return JSON.parse(result)
   } catch {

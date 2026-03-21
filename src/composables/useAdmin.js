@@ -54,6 +54,7 @@ export function useAdmin() {
       behavior: entry.behavior,
       severity: entry.severity,
       remark: entry.remark || '',
+      screenshot: entry.screenshot || '',
       submittedAt: entry.submittedAt,
       approvedAt: Date.now(),
       approvalSig: sig,

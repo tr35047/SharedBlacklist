@@ -36,4 +36,18 @@ defineEmits(['click'])
   font-size: 1.3rem;
   font-weight: 700;
 }
+
+@media (max-width: 480px) {
+  .submit-btn {
+    right: 14px;
+    bottom: 20px;
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    gap: 4px;
+  }
+
+  .submit-icon {
+    font-size: 1rem;
+  }
+}
 </style>

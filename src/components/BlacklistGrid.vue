@@ -252,7 +252,7 @@ async function handleRemove(entry) {
 
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 280px);
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   justify-content: start;
   gap: 16px;
 }
@@ -276,5 +276,29 @@ async function handleRemove(entry) {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+  .grid-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-wrapper {
+    width: 100%;
+  }
+
+  .sort-wrapper {
+    width: 100%;
+  }
+
+  .sort-select {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .grid-container {
+    gap: 12px;
+  }
 }
 </style>

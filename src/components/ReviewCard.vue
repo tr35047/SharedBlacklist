@@ -134,4 +134,22 @@ function formatDate(ts) {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+@media (max-width: 480px) {
+  .review-header {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .review-actions {
+    flex-direction: column;
+  }
+
+  .btn-reject,
+  .btn-approve {
+    width: 100%;
+    text-align: center;
+    padding: 10px 18px;
+  }
+}
 </style>

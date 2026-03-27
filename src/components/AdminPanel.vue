@@ -265,4 +265,22 @@ async function handleRemove(entry) {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+@media (max-width: 768px) {
+  .review-list {
+    max-height: 70vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .review-actions {
+    flex-direction: column;
+  }
+
+  .btn-remove {
+    width: 100%;
+    text-align: center;
+    padding: 10px 18px;
+  }
+}
 </style>

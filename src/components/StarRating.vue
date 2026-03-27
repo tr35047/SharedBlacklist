@@ -66,4 +66,10 @@ function select(val) {
   font-size: 0.85rem;
   color: var(--color-text-secondary);
 }
+
+@media (max-width: 480px) {
+  .star {
+    font-size: 1.4rem;
+  }
+}
 </style>

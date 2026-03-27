@@ -69,6 +69,29 @@ function formatDate(ts) {
 	box-shadow: var(--shadow-md);
 }
 
+@media (hover: none) {
+	.blacklist-card:hover {
+		transform: none;
+		box-shadow: var(--shadow-sm);
+	}
+}
+
+@media (max-width: 480px) {
+	.blacklist-card {
+		padding: 14px;
+	}
+
+	.card-name {
+		font-size: 1rem;
+	}
+
+	.card-delete {
+		padding: 6px 12px;
+		font-size: 0.8rem;
+		min-height: 32px;
+	}
+}
+
 .card-header {
 	display: flex;
 	align-items: center;

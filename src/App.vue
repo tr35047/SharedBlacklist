@@ -5,6 +5,7 @@
 			:pendingCount="pendingEntries.length"
 			@admin-click="handleAdminClick"
 			@logout="handleLogout"
+			@guide-click="showGuide = true"
 		/>
 
 		<main class="container main-content">
@@ -55,11 +56,14 @@
 			@confirm="handleConfirmDelete"
 			@cancel="handleCancelDelete"
 		/>
+
+		<!-- 使用说明 -->
+		<GuideModal v-model="showGuide"/>
 	</div>
 </template>
 
 <script setup>
-import {computed, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import AppFooter from './components/AppFooter.vue'
 import BlacklistGrid from './components/BlacklistGrid.vue'
@@ -69,6 +73,7 @@ import SubmitModal from './components/SubmitModal.vue'
 import AdminLogin from './components/AdminLogin.vue'
 import AdminPanel from './components/AdminPanel.vue'
 import ConfirmModal from './components/ConfirmModal.vue'
+import GuideModal from './components/GuideModal.vue'
 import {useBlacklist} from './composables/useBlacklist.js'
 import {usePending} from './composables/usePending.js'
 import {useAdmin} from './composables/useAdmin.js'
@@ -97,6 +102,15 @@ const showDeleteConfirm = ref(false)
 const deleteConfirmMessage = ref('')
 const pendingDeleteResolver = ref(null)
 const pendingDeleteGroup = ref(null)
+const showGuide = ref(false)
+
+onMounted(() => {
+	const dismissed = localStorage.getItem('guide_dismissed_date')
+	const today = new Date().toISOString().slice(0, 10)
+	if (dismissed !== today) {
+		showGuide.value = true
+	}
+})
 
 const groupedEntries = computed(() => {
 	const groups = new Map()
@@ -241,5 +255,11 @@ function handleLogout() {
 	padding: 24px;
 	flex: 1;
 	overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+	.main-content {
+		padding: 16px 12px;
+	}
 }
 </style>

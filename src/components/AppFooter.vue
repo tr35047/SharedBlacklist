@@ -30,6 +30,7 @@ defineProps({
 }
 
 .footer-inner {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -41,6 +42,13 @@ defineProps({
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.footer-info {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
 }
 
 .status-dot {
@@ -56,8 +64,14 @@ defineProps({
 
 @media (max-width: 640px) {
   .footer-inner {
+    position: static;
     flex-direction: column;
     gap: 6px;
+  }
+
+  .footer-info {
+    position: static;
+    transform: none;
   }
 }
 </style>

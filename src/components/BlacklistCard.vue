@@ -5,13 +5,27 @@
 		@click="$emit('click')"
 	>
 		<div class="card-header">
-			<h3 class="card-name">{{ entry.name }}</h3>
-			<StarRating :modelValue="entry.severity" readonly/>
+			<h3 class="card-name">
+				{{ entry.name }}
+				<span v-if="entry.count > 1" class="card-count">x{{ entry.count }}次</span>
+			</h3>
+			<StarRating :modelValue="entry.maxSeverity || entry.latestEntry?.severity || 0" readonly/>
 		</div>
-		<p class="card-behavior">{{ entry.behavior }}</p>
+		<p class="card-behavior">{{ entry.latestEntry?.behavior || '' }}</p>
 		<div class="card-footer">
-			<span class="card-date">{{ formatDate(entry.approvedAt || entry.submittedAt) }}</span>
-			<span v-if="entry.remark" class="card-remark-hint">查看备注</span>
+			<span class="card-date">{{ formatDate(entry.latestAt) }}</span>
+			<div class="card-actions">
+				<span class="card-remark-hint">查看详情</span>
+				<button
+					v-if="isAdmin"
+					type="button"
+					class="card-delete"
+					:disabled="removing"
+					@click.stop="$emit('remove', entry)"
+				>
+					{{ removing ? '删除中...' : '删除' }}
+				</button>
+			</div>
 		</div>
 	</div>
 </template>
@@ -23,9 +37,11 @@ import {severityToBackground, severityToTextColor} from '../utils/severity.js'
 
 const props = defineProps({
 	entry: {type: Object, required: true},
+	isAdmin: {type: Boolean, default: false},
+	removing: {type: Boolean, default: false},
 })
 
-defineEmits(['click'])
+defineEmits(['click', 'remove'])
 
 const cardStyle = computed(() => ({
 	backgroundColor: 'var(--color-surface)',
@@ -65,6 +81,12 @@ function formatDate(ts) {
 	font-weight: 600;
 }
 
+.card-count {
+	margin-left: 6px;
+	font-size: 0.85rem;
+	color: var(--color-text-secondary);
+}
+
 .card-behavior {
 	font-size: 0.9rem;
 	opacity: 0.9;
@@ -83,7 +105,32 @@ function formatDate(ts) {
 	opacity: 0.7;
 }
 
+.card-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
 .card-remark-hint {
 	text-decoration: underline;
+}
+
+.card-delete {
+	background: var(--color-danger);
+	color: #fff;
+	padding: 4px 10px;
+	border-radius: var(--radius-sm);
+	font-size: 0.75rem;
+	opacity: 1;
+	transition: background var(--transition), opacity var(--transition);
+}
+
+.card-delete:hover:not(:disabled) {
+	background: #c53030;
+}
+
+.card-delete:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
 }
 </style>

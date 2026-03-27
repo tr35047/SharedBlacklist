@@ -10,15 +10,7 @@
           >
             待审核（{{ entries.length }}）
           </button>
-          <button
-            class="tab-btn"
-            :class="{ active: activeTab === 'approved' }"
-            @click="activeTab = 'approved'"
-          >
-            已公示（{{ approvedEntries.length }}）
-          </button>
         </div>
-        <button class="btn-logout" @click="$emit('logout')">退出登录</button>
       </div>
 
       <!-- 待审核 -->
@@ -88,7 +80,7 @@ const props = defineProps({
   onReject: { type: Function, default: null },
   onRemove: { type: Function, default: null },
 })
-const emit = defineEmits(['update:modelValue', 'logout'])
+const emit = defineEmits(['update:modelValue'])
 
 const show = computed({
   get: () => props.modelValue,
@@ -179,19 +171,6 @@ async function handleRemove(entry) {
 .pending-count {
   font-weight: 500;
   color: var(--color-warning);
-}
-
-.btn-logout {
-  background: var(--color-surface-hover);
-  color: var(--color-text-secondary);
-  padding: 6px 14px;
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  transition: background var(--transition);
-}
-.btn-logout:hover {
-  background: var(--color-border);
-  color: var(--color-text);
 }
 
 .panel-loading,

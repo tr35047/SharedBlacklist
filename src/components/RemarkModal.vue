@@ -26,11 +26,13 @@
           <label>严重程度</label>
           <StarRating :modelValue="record.severity" readonly showLabel />
         </div>
-        <div class="detail-row" v-if="record.screenshot">
+        <div class="detail-row" v-if="getScreenshots(record).length > 0">
           <label>截图</label>
-          <a :href="record.screenshot" target="_blank" rel="noopener">
-            <img :src="record.screenshot" alt="举报截图" class="screenshot-img" />
-          </a>
+          <div class="screenshot-list">
+            <a v-for="(url, i) in getScreenshots(record)" :key="i" :href="url" target="_blank" rel="noopener">
+              <img :src="url" alt="举报截图" class="screenshot-img" />
+            </a>
+          </div>
         </div>
         <div class="detail-row" v-if="record.remark">
           <label>备注</label>
@@ -52,12 +54,17 @@
 <script setup>
 import BaseModal from './BaseModal.vue'
 import StarRating from './StarRating.vue'
+import { parseScreenshots } from '../utils/screenshots.js'
 
 defineProps({
   group: { type: Object, default: null },
 })
 
 defineEmits(['close'])
+
+function getScreenshots(record) {
+  return parseScreenshots(record.screenshot)
+}
 
 function formatDate(ts) {
   if (!ts) return ''
@@ -125,11 +132,17 @@ function formatDate(ts) {
   white-space: pre-wrap;
 }
 
+.screenshot-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .screenshot-img {
-  max-width: 100%;
-  max-height: 300px;
+  max-width: 150px;
+  max-height: 150px;
   border-radius: var(--radius-sm);
-  object-fit: contain;
+  object-fit: cover;
   cursor: pointer;
   transition: opacity 0.2s;
 }

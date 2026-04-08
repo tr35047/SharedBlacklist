@@ -6,9 +6,9 @@
     </div>
     <p class="review-behavior"><span class="field-label">行为描述:</span> {{ entry.behavior }}</p>
     <p v-if="entry.remark" class="review-remark"><span class="field-label">备注:</span> {{ entry.remark }}</p>
-    <div v-if="entry.screenshot" class="review-screenshot">
-      <a :href="entry.screenshot" target="_blank" rel="noopener">
-        <img :src="entry.screenshot" alt="举报截图" />
+    <div v-if="screenshots.length > 0" class="review-screenshots">
+      <a v-for="(url, i) in screenshots" :key="i" :href="url" target="_blank" rel="noopener">
+        <img :src="url" alt="举报截图" />
       </a>
     </div>
     <div class="review-meta">
@@ -26,14 +26,18 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import StarRating from './StarRating.vue'
+import { parseScreenshots } from '../utils/screenshots.js'
 
-defineProps({
+const props = defineProps({
   entry: { type: Object, required: true },
   processing: { type: Boolean, default: false },
 })
 
 defineEmits(['approve', 'reject'])
+
+const screenshots = computed(() => parseScreenshots(props.entry.screenshot))
 
 function formatDate(ts) {
   if (!ts) return ''
@@ -88,14 +92,17 @@ function formatDate(ts) {
   margin-bottom: 12px;
 }
 
-.review-screenshot {
+.review-screenshots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: 8px;
 }
-.review-screenshot img {
-  max-width: 100%;
-  max-height: 200px;
+.review-screenshots img {
+  max-width: 120px;
+  max-height: 120px;
   border-radius: var(--radius-sm);
-  object-fit: contain;
+  object-fit: cover;
 }
 
 .review-actions {

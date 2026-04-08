@@ -13,12 +13,12 @@ export function useSubmission() {
   const success = ref(false)
   const uploadProgress = ref('')
 
-  async function submit({ name, behavior, severity, remark, screenshot }) {
+  async function submit({ name, behavior, severity, remark, screenshots }) {
     error.value = ''
     success.value = false
     uploadProgress.value = ''
 
-    const { valid, errors } = validateSubmission({ name, behavior, severity, remark })
+    const { valid, errors } = validateSubmission({ name, behavior, severity, remark, screenshots })
     if (!valid) {
       error.value = errors.join('；')
       return false
@@ -27,10 +27,13 @@ export function useSubmission() {
     submitting.value = true
 
     try {
-      let screenshotUrl = ''
-      if (screenshot) {
-        uploadProgress.value = '正在上传截图...'
-        screenshotUrl = await uploadImage(screenshot)
+      const screenshotUrls = []
+      if (screenshots && screenshots.length > 0) {
+        for (let i = 0; i < screenshots.length; i++) {
+          uploadProgress.value = `正在上传截图 (${i + 1}/${screenshots.length})...`
+          const url = await uploadImage(screenshots[i])
+          screenshotUrls.push(url)
+        }
       }
 
       uploadProgress.value = '正在提交...'
@@ -41,7 +44,7 @@ export function useSubmission() {
         behavior: behavior.trim(),
         severity: Number(severity),
         remark: (remark || '').trim(),
-        screenshot: screenshotUrl,
+        screenshot: JSON.stringify(screenshotUrls),
         submittedAt: Date.now(),
       }
 

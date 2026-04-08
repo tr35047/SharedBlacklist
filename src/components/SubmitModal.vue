@@ -28,23 +28,29 @@
       </div>
 
       <div class="form-group">
-        <label>截图（可选）</label>
+        <label>截图 <span class="required">*</span>（注意：必须上传图片作为审核依据，如果上传与举报内容无关的图片，审核不予通过）<span class="upload-count">上传限制：{{ screenshotFiles.length }}/2</span></label>
         <div class="upload-area" @click="triggerFileInput" @dragover.prevent @drop.prevent="handleDrop">
           <input
             ref="fileInput"
             type="file"
             accept="image/*"
+            multiple
             class="file-input-hidden"
             @change="handleFileChange"
           />
-          <div v-if="!previewUrl" class="upload-placeholder">
+          <div v-if="screenshotFiles.length === 0" class="upload-placeholder">
             <span class="upload-icon">+</span>
             <span class="upload-text">点击或拖拽上传截图</span>
-            <span class="upload-hint">支持 JPG / PNG / GIF，最大 5MB</span>
+            <span class="upload-hint">支持 JPG / PNG / GIF，最大 8MB / 张，最多 2 张</span>
           </div>
-          <div v-else class="upload-preview">
-            <img :src="previewUrl" alt="截图预览" />
-            <button type="button" class="btn-remove-img" @click.stop="removeFile">移除</button>
+        </div>
+        <div v-if="previewUrls.length > 0" class="upload-previews">
+          <div v-for="(url, index) in previewUrls" :key="index" class="upload-preview-item">
+            <img :src="url" alt="截图预览" />
+            <button type="button" class="btn-remove-img" @click="removeFile(index)">×</button>
+          </div>
+          <div v-if="screenshotFiles.length < 2" class="upload-add-more" @click="triggerFileInput">
+            <span class="upload-icon">+</span>
           </div>
         </div>
       </div>
@@ -104,49 +110,59 @@ const form = reactive({
 })
 
 const fileInput = ref(null)
-const screenshotFile = ref(null)
-const previewUrl = ref('')
+const screenshotFiles = ref([])
+const previewUrls = ref([])
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_FILE_SIZE = 8 * 1024 * 1024 // 8MB
+const MAX_FILES = 2
 
 function triggerFileInput() {
   fileInput.value?.click()
 }
 
 function handleFileChange(e) {
-  const file = e.target.files?.[0]
-  if (file) setFile(file)
+  const files = Array.from(e.target.files || [])
+  files.forEach(addFile)
+  if (fileInput.value) fileInput.value.value = ''
 }
 
 function handleDrop(e) {
-  const file = e.dataTransfer.files?.[0]
-  if (file && file.type.startsWith('image/')) setFile(file)
+  const files = Array.from(e.dataTransfer.files || [])
+  files.filter(f => f.type.startsWith('image/')).forEach(addFile)
 }
 
-function setFile(file) {
+function addFile(file) {
+  if (screenshotFiles.value.length >= MAX_FILES) {
+    error.value = `最多上传 ${MAX_FILES} 张截图`
+    return
+  }
   if (file.size > MAX_FILE_SIZE) {
-    error.value = '图片大小不能超过 5MB'
+    error.value = '图片大小不能超过 8MB'
     return
   }
   if (!file.type.startsWith('image/')) {
     error.value = '请选择图片文件'
     return
   }
-  screenshotFile.value = file
-  previewUrl.value = URL.createObjectURL(file)
+  screenshotFiles.value.push(file)
+  previewUrls.value.push(URL.createObjectURL(file))
 }
 
-function removeFile() {
-  screenshotFile.value = null
-  if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value)
-    previewUrl.value = ''
-  }
+function removeFile(index) {
+  screenshotFiles.value.splice(index, 1)
+  URL.revokeObjectURL(previewUrls.value[index])
+  previewUrls.value.splice(index, 1)
+}
+
+function clearFiles() {
+  previewUrls.value.forEach(url => URL.revokeObjectURL(url))
+  screenshotFiles.value = []
+  previewUrls.value = []
   if (fileInput.value) fileInput.value.value = ''
 }
 
 async function handleSubmit() {
-  const ok = await submit({ ...form, screenshot: screenshotFile.value })
+  const ok = await submit({ ...form, screenshots: screenshotFiles.value })
   if (ok) {
     setTimeout(() => {
       show.value = false
@@ -160,7 +176,7 @@ function resetForm() {
   form.behavior = ''
   form.severity = 0
   form.remark = ''
-  removeFile()
+  clearFiles()
   reset()
 }
 </script>
@@ -253,35 +269,73 @@ function resetForm() {
   opacity: 0.6;
 }
 
-.upload-preview {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  padding: 8px;
+.upload-count {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-weight: 400;
 }
 
-.upload-preview img {
-  max-width: 100%;
-  max-height: 200px;
+.upload-previews {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.upload-preview-item {
+  position: relative;
+  width: 90px;
+  height: 90px;
   border-radius: var(--radius-sm);
-  object-fit: contain;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.upload-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .btn-remove-img {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 2px;
+  right: 2px;
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
   border: none;
-  border-radius: var(--radius-sm);
-  padding: 4px 10px;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
   font-size: 0.75rem;
+  line-height: 1;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.2s;
 }
 .btn-remove-img:hover {
   background: rgba(229, 62, 62, 0.8);
+}
+
+.upload-add-more {
+  width: 90px;
+  height: 90px;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+.upload-add-more:hover {
+  border-color: var(--color-accent);
+}
+.upload-add-more .upload-icon {
+  font-size: 1.5rem;
+  opacity: 0.5;
 }
 
 .form-error {

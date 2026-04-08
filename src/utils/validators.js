@@ -2,7 +2,7 @@
  * 校验黑名单提交表单
  * @returns {{ valid: boolean, errors: string[] }}
  */
-export function validateSubmission({ name, behavior, severity, remark }) {
+export function validateSubmission({ name, behavior, severity, remark, screenshots }) {
   const errors = []
 
   if (!name || !name.trim()) {
@@ -19,6 +19,12 @@ export function validateSubmission({ name, behavior, severity, remark }) {
 
   if (!severity || severity < 1 || severity > 5) {
     errors.push('请选择严重程度（1-5）')
+  }
+
+  if (!screenshots || screenshots.length === 0) {
+    errors.push('请至少上传一张截图')
+  } else if (screenshots.length > 2) {
+    errors.push('最多上传 2 张截图')
   }
 
   if (remark && remark.trim().length > 500) {

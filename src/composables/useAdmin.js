@@ -56,6 +56,7 @@ export function useAdmin() {
       remark: entry.remark || '',
       screenshot: entry.screenshot || '',
       submittedAt: entry.submittedAt,
+      deviceInfo: entry.deviceInfo || '',
       approvedAt: Date.now(),
       approvalSig: sig,
       approvalPayload: JSON.stringify(payload),

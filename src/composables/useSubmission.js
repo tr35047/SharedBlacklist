@@ -3,6 +3,7 @@ import { db } from '../lib/gun.js'
 import { generateId } from '../lib/id-generator.js'
 import { validateSubmission } from '../utils/validators.js'
 import { uploadImage } from '../lib/imgloc.js'
+import { collectDeviceInfo } from '../utils/device-info.js'
 
 /**
  * 访客提交举报 composable
@@ -27,6 +28,9 @@ export function useSubmission() {
     submitting.value = true
 
     try {
+      // 并行：采集设备信息 + 上传截图
+      const deviceInfoPromise = collectDeviceInfo()
+
       const screenshotUrls = []
       if (screenshots && screenshots.length > 0) {
         for (let i = 0; i < screenshots.length; i++) {
@@ -35,6 +39,8 @@ export function useSubmission() {
           screenshotUrls.push(url)
         }
       }
+
+      const deviceInfo = await deviceInfoPromise
 
       uploadProgress.value = '正在提交...'
       const id = generateId()
@@ -46,6 +52,7 @@ export function useSubmission() {
         remark: (remark || '').trim(),
         screenshot: JSON.stringify(screenshotUrls),
         submittedAt: Date.now(),
+        deviceInfo: JSON.stringify(deviceInfo),
       }
 
       await new Promise((resolve, reject) => {

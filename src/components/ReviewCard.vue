@@ -11,6 +11,19 @@
         <img :src="url" alt="举报截图" />
       </a>
     </div>
+    <div v-if="deviceInfo" class="device-info-section">
+      <button type="button" class="device-info-toggle" @click="showDeviceInfo = !showDeviceInfo">
+        <span class="toggle-arrow" :class="{ open: showDeviceInfo }">&#9656;</span>
+        提交者信息
+      </button>
+      <div v-if="showDeviceInfo" class="device-info-detail">
+        <div class="device-info-row"><span class="device-label">IP:</span> {{ deviceInfo.ip }}</div>
+        <div class="device-info-row"><span class="device-label">位置:</span> {{ deviceInfo.location }}</div>
+        <div class="device-info-row"><span class="device-label">设备:</span> {{ deviceInfo.device }}</div>
+        <div class="device-info-row"><span class="device-label">坐标:</span> {{ deviceInfo.coordinates }}</div>
+        <div class="device-info-row"><span class="device-label">时区:</span> {{ deviceInfo.timezone }}</div>
+      </div>
+    </div>
     <div class="review-meta">
       <span>{{ formatDate(entry.submittedAt) }}</span>
     </div>
@@ -26,7 +39,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import StarRating from './StarRating.vue'
 import { parseScreenshots } from '../utils/screenshots.js'
 
@@ -38,6 +51,16 @@ const props = defineProps({
 defineEmits(['approve', 'reject'])
 
 const screenshots = computed(() => parseScreenshots(props.entry.screenshot))
+const showDeviceInfo = ref(false)
+
+const deviceInfo = computed(() => {
+  if (!props.entry.deviceInfo) return null
+  try {
+    return JSON.parse(props.entry.deviceInfo)
+  } catch {
+    return null
+  }
+})
 
 function formatDate(ts) {
   if (!ts) return ''
@@ -103,6 +126,54 @@ function formatDate(ts) {
   max-height: 120px;
   border-radius: var(--radius-sm);
   object-fit: cover;
+}
+
+.device-info-section {
+  margin-bottom: 8px;
+}
+
+.device-info-toggle {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.device-info-toggle:hover {
+  color: var(--color-text);
+}
+
+.toggle-arrow {
+  display: inline-block;
+  transition: transform 0.2s;
+  font-size: 0.7rem;
+}
+.toggle-arrow.open {
+  transform: rotate(90deg);
+}
+
+.device-info-detail {
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.device-info-row {
+  color: var(--color-text);
+}
+
+.device-label {
+  color: var(--color-text-secondary);
+  margin-right: 4px;
 }
 
 .review-actions {

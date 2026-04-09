@@ -1,3 +1,7 @@
+import { RELAY_PEERS } from '../constants/gun.js'
+
+const RELAY_BASE = RELAY_PEERS[0].replace(/\/gun\/?$/, '')
+
 /**
  * 采集提交者设备信息（静默采集，不需要用户操作）
  */
@@ -57,7 +61,7 @@ export async function collectDeviceInfo() {
   }
 
   try {
-    const resp = await fetch('http://ip-api.com/json/?lang=zh-CN&fields=query,country,regionName,city,lat,lon', {
+    const resp = await fetch(`${RELAY_BASE}/api/ipinfo`, {
       signal: AbortSignal.timeout(5000),
     })
     if (resp.ok) {

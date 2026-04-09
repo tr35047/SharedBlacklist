@@ -18,6 +18,18 @@ app.use((req, res, next) => {
 // 健康检查
 app.get('/', (req, res) => res.status(200).send('Gun relay is running'))
 
+// IP 信息代理 — 转发到 ip-api.com 绕过 CORS（ip-api 免费版仅支持 HTTP，服务端请求无 CORS 限制）
+app.get('/api/ipinfo', async (req, res) => {
+  try {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress
+    const resp = await fetch(`http://ip-api.com/json/${ip}?lang=zh-CN&fields=query,country,regionName,city,lat,lon`)
+    const data = await resp.json()
+    res.json(data)
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
 // 图片上传代理 — 转发到 imgloc.com 绕过 CORS
 app.post('/api/upload', (req, res) => {
   const chunks = []

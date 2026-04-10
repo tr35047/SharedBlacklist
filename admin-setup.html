@@ -25,8 +25,8 @@
 <body>
   <div class="card">
     <h1>管理员账户初始化工具</h1>
-    <label>别名</label>
-    <input id="alias" value="blacklist-admin" placeholder="输入管理员别名" />
+    <label>别名（固定）</label>
+    <input id="alias" value="blacklist-admin" readonly />
     <label>管理员密码</label>
     <input id="password" type="password" placeholder="输入管理员密码" />
     <button id="btn" onclick="init()">创建管理员账户</button>
@@ -52,26 +52,47 @@
       output.innerHTML = '<p class="status">正在创建账户...</p>'
 
       try {
-        const result = await createAdminAccount(user, alias, password)
-        const aliasNote = result.alias !== alias
-          ? `<br>⚠ 原别名已被占用，实际使用的别名为：<span class="pub">${result.alias}</span><br>请同时更新 src/constants/admin.js 中的 ADMIN_ALIAS。`
-          : ''
+        const pair = await createAdminAccount(user, alias, password)
         output.innerHTML = `
           <div class="result">
-            <div>别名 (alias): <span class="pub">${result.alias}</span></div>
             <div>公钥 (pub):</div>
-            <div class="pub" id="pubkey">${result.pair.pub}</div>
+            <div class="pub" id="pubkey">${pair.pub}</div>
           </div>
           <p class="warn">
             请复制上方公钥，粘贴到 src/constants/admin.js 中的 ADMIN_PUB_KEY，然后重新构建。<br>
             密码请牢记，Gun 用户系统无法找回密码。
-            ${aliasNote}
           </p>
         `
-        console.log('完整密钥对:', JSON.stringify(result.pair))
-        console.log('实际别名:', result.alias)
+        console.log('完整密钥对:', JSON.stringify(pair))
       } catch (e) {
-        output.innerHTML = `<p class="error">创建失败：${e.message}</p>`
+        // 如果用户已存在，尝试登录获取公钥
+        if (e.message && e.message.includes('already')) {
+          output.innerHTML = '<p class="status">账户已存在，尝试登录获取公钥...</p>'
+          try {
+            user.auth(alias, password, (ack) => {
+              if (ack.err) {
+                output.innerHTML = `<p class="error">登录失败：${ack.err}</p>`
+                btn.disabled = false
+                return
+              }
+              const pair = user._.sea
+              output.innerHTML = `
+                <div class="result">
+                  <div>账户已存在，公钥 (pub):</div>
+                  <div class="pub">${pair.pub}</div>
+                </div>
+                <p class="warn">
+                  请复制上方公钥，粘贴到 src/constants/admin.js 中的 ADMIN_PUB_KEY，然后重新构建。
+                </p>
+              `
+              console.log('完整密钥对:', JSON.stringify(pair))
+            })
+          } catch (e2) {
+            output.innerHTML = `<p class="error">登录失败：${e2.message}</p>`
+          }
+        } else {
+          output.innerHTML = `<p class="error">创建失败：${e.message}</p>`
+        }
       }
       btn.disabled = false
     }

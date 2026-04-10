@@ -37,6 +37,7 @@
 			:loginError="loginError"
 			:loggingIn="loggingIn"
 			@login="handleLogin"
+			@loginWithPair="handleLoginWithPair"
 		/>
 
 		<!-- 管理员审核面板 -->
@@ -86,7 +87,7 @@ const {entries, loading} = useBlacklist()
 const {entries: pendingEntries, loading: pendingLoading} = usePending()
 
 // 管理员
-const {isAdmin, loginError, loggingIn, login, logout, approve, reject, remove} = useAdmin()
+const {isAdmin, loginError, loggingIn, login, loginWithPair, logout, approve, reject, remove} = useAdmin()
 
 // 连接状态
 const {connected, peerCount} = useRelayStatus()
@@ -189,6 +190,13 @@ function handleAdminClick() {
 
 async function handleLogin(password) {
 	await login(password)
+	if (isAdmin.value) {
+		showLogin.value = false
+	}
+}
+
+async function handleLoginWithPair(pairJson) {
+	await loginWithPair(pairJson)
 	if (isAdmin.value) {
 		showLogin.value = false
 	}

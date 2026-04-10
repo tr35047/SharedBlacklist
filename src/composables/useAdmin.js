@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import gun, { db, user } from '../lib/gun.js'
-import { authenticateAdmin, signApproval } from '../lib/sea.js'
+import { authenticateAdmin, authenticateWithPair, exportAdminPair, signApproval } from '../lib/sea.js'
 import { ADMIN_ALIAS, ADMIN_PUB_KEY } from '../constants/admin.js'
 import { generateId } from '../lib/id-generator.js'
 
@@ -20,6 +20,27 @@ export function useAdmin() {
     try {
       const result = await authenticateAdmin(user, ADMIN_ALIAS, password)
       pair.value = result
+      // 登录成功后自动保存密钥对，防止后续 alias 冲突
+      try { exportAdminPair(result) } catch {}
+    } catch (e) {
+      loginError.value = e.message
+    } finally {
+      loggingIn.value = false
+    }
+  }
+
+  /**
+   * 使用完整密钥对 JSON 直接登录（绕过 alias 冲突）
+   */
+  async function loginWithPair(pairJson) {
+    loginError.value = ''
+    loggingIn.value = true
+
+    try {
+      const pairData = typeof pairJson === 'string' ? JSON.parse(pairJson) : pairJson
+      const result = await authenticateWithPair(user, pairData)
+      pair.value = result
+      try { exportAdminPair(result) } catch {}
     } catch (e) {
       loginError.value = e.message
     } finally {
@@ -113,6 +134,7 @@ export function useAdmin() {
     loginError,
     loggingIn,
     login,
+    loginWithPair,
     logout,
     approve,
     reject,

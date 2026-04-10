@@ -1,7 +1,12 @@
 <template>
   <BaseModal v-model="show" title="管理员登录" maxWidth="400px">
     <form @submit.prevent="handleLogin" class="login-form">
-      <div class="form-group">
+      <div class="login-mode-toggle">
+        <button type="button" :class="{ active: mode === 'password' }" @click="mode = 'password'">密码登录</button>
+        <button type="button" :class="{ active: mode === 'keypair' }" @click="mode = 'keypair'">密钥对登录</button>
+      </div>
+
+      <div v-if="mode === 'password'" class="form-group">
         <label>管理员密码</label>
         <input
           v-model="password"
@@ -9,6 +14,15 @@
           placeholder="请输入管理员密码"
           autocomplete="off"
         />
+      </div>
+
+      <div v-if="mode === 'keypair'" class="form-group">
+        <label>密钥对 JSON</label>
+        <textarea
+          v-model="pairJson"
+          placeholder='粘贴完整密钥对 {"pub":"...","priv":"...","epub":"...","epriv":"..."}'
+          rows="4"
+        ></textarea>
       </div>
 
       <div v-if="loginError" class="form-error">{{ loginError }}</div>
@@ -32,19 +46,27 @@ const props = defineProps({
   loginError: { type: String, default: '' },
   loggingIn: { type: Boolean, default: false },
 })
-const emit = defineEmits(['update:modelValue', 'login'])
+const emit = defineEmits(['update:modelValue', 'login', 'loginWithPair'])
 
 const show = computed({
   get: () => props.modelValue,
   set: (v) => emit('update:modelValue', v),
 })
 
+const mode = ref('password')
 const password = ref('')
+const pairJson = ref('')
 
 function handleLogin() {
-  if (!password.value.trim()) return
-  emit('login', password.value)
-  password.value = ''
+  if (mode.value === 'password') {
+    if (!password.value.trim()) return
+    emit('login', password.value)
+    password.value = ''
+  } else {
+    if (!pairJson.value.trim()) return
+    emit('loginWithPair', pairJson.value)
+    pairJson.value = ''
+  }
 }
 </script>
 
@@ -66,7 +88,30 @@ function handleLogin() {
   color: var(--color-text-secondary);
 }
 
-.form-group input {
+.login-mode-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.login-mode-toggle button {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.login-mode-toggle button.active {
+  background: var(--color-accent);
+  color: #fff;
+}
+
+.form-group input,
+.form-group textarea {
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -74,8 +119,12 @@ function handleLogin() {
   color: var(--color-text);
   outline: none;
   transition: border-color var(--transition);
+  font-family: inherit;
+  font-size: inherit;
+  resize: vertical;
 }
-.form-group input:focus {
+.form-group input:focus,
+.form-group textarea:focus {
   border-color: var(--color-accent);
 }
 
